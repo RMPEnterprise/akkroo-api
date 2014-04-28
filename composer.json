@@ -1,6 +1,8 @@
 {
     "name": "rmp-enterprise/akkroo-api",
     "description": "Client to connect to the Akkroo API.",
+    "keywords": ["akkroo", "api"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Luke Armstrong",
