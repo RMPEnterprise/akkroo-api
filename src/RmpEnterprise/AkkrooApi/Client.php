@@ -6,25 +6,23 @@ class Client
 {
 	protected $client;
 	protected $access_token;
+	protected $access_token_expiry;
 
-	public function __construct($username, $client_credentials)
+	public function __construct($baseURL = 'https://akkroo.com/api/', $client_options = array())
 	{
-		$this->client = new \GuzzleHttp\Client(
-			array(
-				'base_url' => 'https://akkroo.com/api/',
-				'defaults' => array(
-					'headers' => array(
-						'Accept'       => 'application/vnd.akkroo-v1.1.2+json',
-						'Content-Type' => 'application/vnd.akkroo-v1.1.2+json'
-					)
+		$default_options = array(
+			'base_url' => $baseURL,
+			'defaults' => array(
+				'headers' => array(
+					'Accept'       => 'application/vnd.akkroo-v1.1.2+json',
+					'Content-Type' => 'application/vnd.akkroo-v1.1.2+json'
 				)
 			)
 		);
-
-		$this->auth($username, $client_credentials);
+		$this->client = new \GuzzleHttp\Client(array_merge_recursive($default_options, $client_options));
 	}
 
-	protected function auth($username, $client_credentials)
+	public function auth($username, $client_credentials, $scope = 'PublicAPI')
 	{
 		$request = $this->client->createRequest('POST', 'auth');
 		$request->setHeader('Authorization', 'Basic ' . $client_credentials);
@@ -35,7 +33,7 @@ class Client
 					array(
 						'grant_type' => 'client_credentials',
 						'username'   => $username,
-						'scope'      => 'PublicAPI'
+						'scope'      => $scope
 					)
 				)
 			)
@@ -45,31 +43,56 @@ class Client
 		$data     = $response->json();
 
 		if (isset($data['access_token'])) {
-			$this->access_token = $data['access_token'];
-
-			return true;
+			$this->setAccessToken($data['access_token']);
+			return [
+				'access_token' => $data['access_token'],
+				'expires_in' => $data['expires_in']
+			];
 		}
 
 		return false;
 	}
 
-	protected function request($url, array $fields = array())
-	{
+	public function setAccessToken($accessToken) {
+		$this->access_token = $accessToken;
+	}
+
+	protected function makeRequest($url, $method = 'GET', array $options = array()) {
 		if (is_null($this->access_token)) {
 			return null;
 		}
 
-		$request = $this->client->createRequest('GET', $url);
+		$query = null;
+		if (isset($options['query'])) {
+			$query = $options['query'];
+			unset($options['query']);
+		}
+
+		$request = $this->client->createRequest($method, $url, $options);
 		$request->setHeader('Authorization', 'Bearer ' . $this->access_token);
 
-		if ($fields) {
-			$query = $request->getQuery();
-			$query->set('fields', implode(',', $fields));
+		if (!is_null($query)) {
+			$q = $request->getQuery();
+			foreach($query as $param => $value) {
+				$q->set($param, implode(',', $value));
+			}
 		}
 
 		$response = $this->client->send($request);
-
 		return $response->json();
+	}
+
+	protected function request($url, array $fields = array())
+	{
+		return $this->makeRequest($url, 'GET', [
+			'query' => $fields
+		]);
+	}
+
+	protected function post($url, $body) {
+		return $this->makeRequest($url, 'POST', [
+			'body' => json_encode($body)
+		]);
 	}
 
 	public function selftest()
@@ -129,5 +152,12 @@ class Client
 		$url = 'events/' . $event_id . '/registrations/' . $registration_id;
 
 		return $this->request($url, $fields);
+	}
+
+	public function createRegistration($event_id, $registration)
+	{
+		$url = 'events/' . $event_id . '/registrations/';
+
+		return $this->post($url, $registration);
 	}
 }
