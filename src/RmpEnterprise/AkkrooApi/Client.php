@@ -160,4 +160,15 @@ class Client
 
 		return $this->post($url, $registration);
 	}
+
+	public function findAddress($eventID, $postcode)
+	{
+		$url = 'findAddress';
+		$fields = [
+			'eventID' => [$eventID],
+			'postcode' => [$postcode]
+		];
+		return $this->request($url, $fields);
+	}
+
 }
