@@ -14,8 +14,8 @@ class Client
 				'base_url' => 'https://akkroo.com/api/',
 				'defaults' => array(
 					'headers' => array(
-						'Accept'       => 'application/vnd.akkroo-v1.1.2+json',
-						'Content-Type' => 'application/vnd.akkroo-v1.1.2+json'
+						'Accept'       => 'application/vnd.akkroo-v1.1.5+json',
+						'Content-Type' => 'application/vnd.akkroo-v1.1.5+json'
 					)
 				)
 			)
