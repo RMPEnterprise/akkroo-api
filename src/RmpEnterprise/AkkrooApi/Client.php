@@ -10,17 +10,16 @@ class Client
 
 	public function __construct($baseURL = 'https://akkroo.com/api/', $client_options = array())
 	{
-		$this->client = new \GuzzleHttp\Client(
-			array(
-				'base_url' => 'https://akkroo.com/api/',
-				'defaults' => array(
-					'headers' => array(
-						'Accept'       => 'application/vnd.akkroo-v1.1.5+json',
-						'Content-Type' => 'application/vnd.akkroo-v1.1.5+json'
-					)
+		$default_options = array(
+			'base_url' => $baseURL,
+			'defaults' => array(
+				'headers' => array(
+					'Accept'       => 'application/vnd.akkroo-v1.1.5+json',
+					'Content-Type' => 'application/vnd.akkroo-v1.1.5+json'
 				)
 			)
 		);
+		
 		$this->client = new \GuzzleHttp\Client(array_merge_recursive($default_options, $client_options));
 	}
 
