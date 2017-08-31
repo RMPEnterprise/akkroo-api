@@ -72,6 +72,10 @@ class Client
 		$request = $this->client->createRequest($method, $url, $options);
 		$request->setHeader('Authorization', 'Bearer ' . $this->access_token);
 
+		if($method == 'GET'){
+			$request->setHeader('Range', 'resources=0-1000');
+		}
+
 		if (!is_null($query)) {
 			$q = $request->getQuery();
 			foreach($query as $param => $value) {
